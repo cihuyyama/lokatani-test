@@ -2,7 +2,7 @@
 </script>
 
 <template>
-    <main id="MainLayout" class="w-full h-screen flex justify-center items-center">
+    <main id="MainLayout" class="w-full h-full flex justify-center items-center">
         <slot />
     </main>
 </template>
