@@ -15,7 +15,7 @@ Before getting started, ensure you have the following installed on your system:
 - MySQL (Database)
 - Laragon/XAMPP (local server)
 
-## Environment Configuration
+## Environment and Database Configuration
 
 ### Copy .env.example to .env
 
@@ -23,8 +23,8 @@ Before getting started, ensure you have the following installed on your system:
 cp .env.example .env
 ```
 
-### Configure Database environment
-in this case we're using mysql
+### Configure Database
+got to .env file and configure database, in this case we're using mysql
 
 ```javascript
 DB_CONNECTION=mysql
@@ -33,6 +33,11 @@ DB_PORT=3306
 DB_DATABASE=your_database_name
 DB_USERNAME=your_database_username
 DB_PASSWORD=your_database_password
+```
+
+### Install Vendor Dependencies
+```bash
+composer install
 ```
 
 ### Run Migrate
@@ -50,14 +55,22 @@ App\Models\Customer::factory()->count(30)->create();
 
 ## Running the Application
 
-### Step 1: Install JavaScript Dependencies
+### Install JavaScript Dependencies
 
 ```bash
 npm install
 ```
 This command will install all the required JavaScript dependencies defined in your project's package.json file, including Inertia.js, Tailwind CSS, and any other packages required for your Vue.js application.
 
-### Step 2: Serve your Laravel application
+### Generate App Key
+
+Generate your application encryption key using:
+
+```bash
+php artisan key:generate
+```
+
+### Serve your Laravel application
 
 To serve your Laravel application, run the following command in your terminal:
 
@@ -65,7 +78,7 @@ To serve your Laravel application, run the following command in your terminal:
 php artisan serve
 ```
 
-### Step 3: Compile your assets
+### Compile your assets
 
 Open another terminal in the root directory and run the code to compile the client side
 
@@ -73,7 +86,7 @@ Open another terminal in the root directory and run the code to compile the clie
 npm run dev
 ```
 
-### Step 4: Access your application
+### Access your application
 
 Open your web browser and navigate to http://127.0.0.1:8000 to access your Laravel application.
 
