@@ -22,8 +22,8 @@ class CustomerController extends Controller
                 'email' => $customer->email,
                 'phone' => $customer->phone,
                 'address' => $customer->address,
-                'created_at' => Carbon::createFromFormat('Y-m-d H:i:s', $customer->created_at)->format('d F Y H:i:s'),
-                'updated_at' => Carbon::createFromFormat('Y-m-d H:i:s', $customer->created_at)->format('d F Y H:i:s'),
+                'created_at' => Carbon::createFromFormat('Y-m-d H:i:s', $customer->created_at, 'Asia/Jakarta')->format('d F Y H:i:s'),
+                'updated_at' => Carbon::createFromFormat('Y-m-d H:i:s', $customer->created_at, 'Asia/Jakarta')->format('d F Y H:i:s'),
             ];
         });
         return Inertia::render('Home', [
@@ -47,7 +47,7 @@ class CustomerController extends Controller
         $customer = Customer::where('email', $request->email)->first();
         if ($customer) {
             return back()->withErrors([
-                'email' => 'Email already exists'
+                'message' => 'Email already exists'
             ]);
         }
         Customer::create($request->validate([
@@ -80,7 +80,21 @@ class CustomerController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $customer = Customer::find($id);
+        if ($customer) {
+            $customer->fill($request->validate([
+                'name' => ['required'],
+                'phone' => ['required'],
+                'address' => ['required'],
+            ]));
+            $customer->updated_at = Carbon::now()->setTimezone('Asia/Jakarta');
+            $customer->save();
+        } else {
+            return back()->withErrors([
+                'message' => 'Customer not found'
+            ]);
+        }
+        return to_route('index');
     }
 
     /**
@@ -88,6 +102,15 @@ class CustomerController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $customer = Customer::find($id);
+        if ($customer) {
+            $customer->deleted_at = Carbon::now();
+            $customer->save();
+        } else {
+            return back()->withErrors([
+                'message' => 'Customer not found'
+            ]);
+        }
+        return to_route('index');
     }
 }

@@ -4,6 +4,8 @@ import { valueUpdater } from '@/lib/utils'
 import type { ColumnDef, ColumnFiltersState, } from '@tanstack/vue-table'
 import { vAutoAnimate } from '@formkit/auto-animate/vue'
 import { toast } from "vue-sonner"
+import { Loader2 } from 'lucide-vue-next'
+
 
 import {
     ChevronRightIcon,
@@ -67,7 +69,7 @@ import {
     FormLabel,
     FormMessage,
 } from '../ui/form'
-import { DialogCloseProps } from 'radix-vue'
+import { Textarea } from '../ui/textarea'
 
 const formSchema = toTypedSchema(z.object({
     name: z.string({
@@ -81,7 +83,7 @@ const formSchema = toTypedSchema(z.object({
     phone: z.number({
         required_error: 'Phone is required.',
         invalid_type_error: 'Invalid Phone.'
-    }).min(10),
+    }),
     address: z.string({
         required_error: 'Address is required.'
     }),
@@ -109,7 +111,7 @@ const onSubmit = handleSubmit((values) => {
         },
         onError: (errors) => {
             console.log(errors)
-            toast.error(`Failed to create customer. : ${errors.email || errors.phone || errors.name || errors.address}`)
+            toast.error(`Failed to create customer. : ${errors.message}`)
         },
         onProgress: () => {
             toast.loading('Creating customer...')
@@ -194,7 +196,7 @@ const table = useVueTable({
                             <FormItem class="my-4" v-auto-animate>
                                 <FormLabel>Address</FormLabel>
                                 <FormControl>
-                                    <Input type="text" placeholder="Address" v-model="form.address"
+                                    <Textarea type="text" placeholder="Address" v-model="form.address"
                                         v-bind="componentField" />
                                 </FormControl>
                                 <FormMessage />
@@ -202,7 +204,11 @@ const table = useVueTable({
                         </FormField>
 
                         <DialogFooter>
-                            <Button class="mt-4" :disabled="form.processing" type="submit">
+                            <Button v-if="form.processing" disabled>
+                                <Loader2 class="w-4 h-4 mr-2 animate-spin" />
+                                Saving...
+                            </Button>
+                            <Button v-else class="mt-4" type="submit">
                                 Save
                             </Button>
                         </DialogFooter>

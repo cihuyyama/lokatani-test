@@ -1,6 +1,29 @@
 <script setup lang="ts">
 import { Customer } from '../../types/customer'
+import { h, ref } from 'vue'
+import { Loader2 } from 'lucide-vue-next'
 import Button from '../ui/button/Button.vue';
+import { Textarea } from '../ui/textarea';
+import Input from '../ui/input/Input.vue';
+import { useForm } from 'vee-validate'
+import { useForm as useFormInertia } from '@inertiajs/vue3'
+import * as z from 'zod'
+import { toTypedSchema } from '@vee-validate/zod'
+import { vAutoAnimate } from '@formkit/auto-animate/vue'
+import { router } from '@inertiajs/vue3'
+import {
+    BookOpen,
+    Pen,
+    Trash2
+} from 'lucide-vue-next'
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '../ui/form'
 import {
     Dialog,
     DialogClose,
@@ -11,16 +34,70 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/Components/ui/dialog'
+import { toast } from 'vue-sonner';
 
-defineProps<{
+const props = defineProps<{
     customer: Customer
 }>()
 
-import {
-    BookOpen,
-    Pen,
-    Trash2
-} from 'lucide-vue-next'
+const formSchema = toTypedSchema(z.object({
+    name: z.string({
+        required_error: 'Name is required.'
+    }).default(props.customer.name),
+    email: z.string({
+        required_error: 'Email is required.'
+    }).email({
+        message: 'Email is invalid.'
+    }).default(props.customer.email),
+    phone: z.number({
+        required_error: 'Phone is required.',
+        invalid_type_error: 'Invalid Phone.'
+    }).default(Number(props.customer.phone)),
+    address: z.string({
+        required_error: 'Address is required.'
+    }).default(props.customer.address),
+    id: z.number().default(props.customer.id),
+}))
+
+const { handleSubmit } = useForm({
+    validationSchema: formSchema,
+})
+
+const onDeleteSubmit = handleSubmit((values) => {
+    router.delete('/', {
+        data: {
+            id: values.id
+        },
+        onSuccess: () => {
+            toast.success('Customer deleted successfully.')
+        },
+        onError: () => {
+            toast.error('Failed to delete customer.')
+        }
+    })
+})
+
+const openUpdate = ref(false)
+
+const onUpdateSubmit = handleSubmit((values) => {
+    form.put(`/${values.id}`, {
+        onSuccess: () => {
+            openUpdate.value = false
+            toast.success('Customer updated successfully.')
+        },
+        onError: (error) => {
+            toast.error(`Failed to update customer : ${error.message}`)
+        },
+    })
+})
+
+const form = useFormInertia({
+    name: props.customer.name,
+    email: props.customer.email,
+    phone: props.customer.phone,
+    address: props.customer.address,
+})
+
 </script>
 
 <template>
@@ -73,11 +150,101 @@ import {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
-        <Button class="text-white bg-green-400" variant="outline" click="">
-            <Pen />
-        </Button>
-        <Button class="text-white bg-red-400" variant="outline" click="">
-            <Trash2 />
-        </Button>
+
+        <Dialog v-model:open="openUpdate">
+            <DialogTrigger>
+                <Button class="text-white bg-green-400" variant="outline" click="">
+                    <Pen />
+                </Button>
+            </DialogTrigger>
+            <DialogContent>
+                <form @submit.prevent="onUpdateSubmit">
+                    <DialogHeader>
+                        <DialogTitle>Edit Customer</DialogTitle>
+                        <DialogDescription>
+                            Make changes to your customer here. Click save when you're done.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <FormField v-slot="{ componentField }" name="name">
+                        <FormItem class="my-2" v-auto-animate>
+                            <FormLabel>Name</FormLabel>
+                            <FormControl>
+                                <Input type="text" placeholder="Name" :default-value="props.customer.name"
+                                    v-model="form.name" v-bind="componentField" />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    </FormField>
+                    <FormField v-slot="{ componentField }" name="email">
+                        <FormItem class="my-2" v-auto-animate>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                                <Input type="text" placeholder="Email" disabled :default-value="props.customer.email"
+                                    v-model="form.email" v-bind="componentField" />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    </FormField>
+                    <FormField v-slot="{ componentField }" name="phone">
+                        <FormItem class="my-2" v-auto-animate>
+                            <FormLabel>Phone</FormLabel>
+                            <FormControl>
+                                <Input type="number" class="remove-arrow" placeholder="Phone"
+                                    :default-value="props.customer.phone" v-model="form.phone"
+                                    v-bind="componentField" />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    </FormField>
+                    <FormField v-slot="{ componentField }" name="address">
+                        <FormItem class="my-2" v-auto-animate>
+                            <FormLabel>Address</FormLabel>
+                            <FormControl>
+                                <Textarea type="text" placeholder="Address" :default-value="props.customer.address"
+                                    v-model="form.address" v-bind="componentField" />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    </FormField>
+                    <DialogFooter>
+                        <Button v-if="form.processing" disabled>
+                            <Loader2 class="w-4 h-4 mr-2 animate-spin" />
+                            Saving...
+                        </Button>
+                        <Button v-else type="submit" class="text-white bg-green-400 mt-2" variant="outline">
+                            Save
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+
+        <Dialog>
+            <DialogTrigger>
+                <Button class="text-white bg-red-400" variant="outline" click="">
+                    <Trash2 />
+                </Button>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Delete Customer</DialogTitle>
+                    <DialogDescription>
+                        Are you sure you want to delete this customer?
+                    </DialogDescription>
+                </DialogHeader>
+
+                <DialogFooter>
+                    <DialogClose as-child>
+                        <Button>
+                            Cancel
+                        </Button>
+                    </DialogClose>
+                    <Button @click="onDeleteSubmit" class="text-white bg-red-400" variant="outline">
+                        Delete
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
     </div>
 </template>

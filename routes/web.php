@@ -12,6 +12,8 @@ use Inertia\Inertia;
 // });
 
 Route::resource('/', CustomerController::class);
+Route::put('/{id}', [CustomerController::class, 'update']);
+Route::delete('/{id}', [CustomerController::class, 'destroy']);
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
