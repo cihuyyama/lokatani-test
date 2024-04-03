@@ -24,7 +24,7 @@ cp .env.example .env
 ```
 
 ### Configure Database
-got to .env file and configure database, in this case we're using mysql
+go to .env file and configure database, in this case we're using mysql
 
 ```javascript
 DB_CONNECTION=mysql
