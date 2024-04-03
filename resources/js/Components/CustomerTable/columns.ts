@@ -2,6 +2,8 @@ import { h } from 'vue'
 import type { ColumnDef } from '@tanstack/vue-table'
 import { Customer } from '@/types/customer'
 import DataTableAction from './DataTableAction.vue'
+import { ArrowUpDown, ChevronDown } from 'lucide-vue-next'
+import { Button } from '@/Components/ui/button'
 
 export const customerColumn: ColumnDef<Customer>[] = [
   {
@@ -10,7 +12,13 @@ export const customerColumn: ColumnDef<Customer>[] = [
   },
   {
     accessorKey: 'name',
-    header: () => h('div', { class: '' }, 'Name'),
+    header: ({ column }) => {
+      return h(Button, {
+        variant: 'ghost',
+        onClick: () => column.toggleSorting(column.getIsSorted() === 'asc'),
+      }, () => ['Name', h(ArrowUpDown, { class: 'ml-2 h-4 w-4' })])
+    },
+    cell: ({ row }) => h('div', { class: 'lowercase' }, row.getValue('name')),
   },
   {
     accessorKey: 'email',
@@ -31,8 +39,8 @@ export const customerColumn: ColumnDef<Customer>[] = [
       const customer = row.original
 
       return h('div', { class: 'relative' }, h(DataTableAction, {
-          customer,
+        customer,
       }))
-  },
+    },
   },
 ]

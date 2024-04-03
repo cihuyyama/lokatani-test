@@ -71,8 +71,7 @@ const onDeleteSubmit = handleSubmit((values) => {
         onSuccess: () => {
             openDelete.value = false
             toast.success('Customer deleted successfully.')
-            window.location.reload()
-        },
+            window.location.reload()        },
         onError: (error) => {
             toast.error(`Failed to delete customer : ${error.message}`)
         }

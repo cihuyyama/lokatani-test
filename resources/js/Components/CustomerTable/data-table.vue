@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="TData, TValue">
 import { h, ref } from 'vue'
 import { valueUpdater } from '@/lib/utils'
-import type { ColumnDef, ColumnFiltersState, } from '@tanstack/vue-table'
+import type { ColumnDef, ColumnFiltersState, SortingState } from '@tanstack/vue-table'
 import { vAutoAnimate } from '@formkit/auto-animate/vue'
 import { toast } from "vue-sonner"
 import { Loader2 } from 'lucide-vue-next'
@@ -33,6 +33,7 @@ import {
     useVueTable,
     getPaginationRowModel,
     getFilteredRowModel,
+    getSortedRowModel,
 } from "@tanstack/vue-table"
 
 import {
@@ -126,6 +127,7 @@ const props = defineProps<{
 }>()
 
 const columnFilters = ref<ColumnFiltersState>([])
+const sorting = ref<SortingState>([])
 
 const table = useVueTable({
     get data() { return props.data },
@@ -133,9 +135,12 @@ const table = useVueTable({
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
+    getSortedRowModel: getSortedRowModel(),
+    onSortingChange: updaterOrValue => valueUpdater(updaterOrValue, sorting),
     getFilteredRowModel: getFilteredRowModel(),
     state: {
         get columnFilters() { return columnFilters.value },
+        get sorting() { return sorting.value },
     }
 })
 </script>
