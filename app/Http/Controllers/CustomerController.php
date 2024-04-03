@@ -44,7 +44,19 @@ class CustomerController extends Controller
      */
     public function store(Request $request)
     {
-        dd($request);
+        $customer = Customer::where('email', $request->email)->first();
+        if ($customer) {
+            return back()->withErrors([
+                'email' => 'Email already exists'
+            ]);
+        }
+        Customer::create($request->validate([
+            'name' => ['required'],
+            'email' => ['required', 'email'],
+            'phone' => ['required'],
+            'address' => ['required'],
+        ]));
+        return to_route('index');
     }
 
     /**

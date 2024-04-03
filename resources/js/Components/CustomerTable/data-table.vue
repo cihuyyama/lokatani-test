@@ -1,12 +1,28 @@
 <script setup lang="ts" generic="TData, TValue">
-import type { ColumnDef } from '@tanstack/vue-table'
+import { h, ref } from 'vue'
+import { valueUpdater } from '@/lib/utils'
+import type { ColumnDef, ColumnFiltersState, } from '@tanstack/vue-table'
+import { vAutoAnimate } from '@formkit/auto-animate/vue'
+import { toast } from "vue-sonner"
 
 import {
     ChevronRightIcon,
     ChevronsLeftIcon,
     ChevronsRightIcon,
-    ChevronLeftIcon
+    ChevronLeftIcon,
+    Plus
 } from 'lucide-vue-next'
+
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/Components/ui/dialog'
 
 
 import {
@@ -14,7 +30,7 @@ import {
     getCoreRowModel,
     useVueTable,
     getPaginationRowModel,
-    ColumnFiltersState,
+    getFilteredRowModel,
 } from "@tanstack/vue-table"
 
 import {
@@ -34,22 +50,167 @@ import {
     TableRow,
 } from "../ui/table"
 import Button from '../ui/button/Button.vue';
+import Input from '../ui/input/Input.vue';
+import Label from '../ui/label/Label.vue'
+import * as z from 'zod'
+import { toTypedSchema } from '@vee-validate/zod'
+
+
+import { useForm } from 'vee-validate'
+import { useForm as useFormInertia } from '@inertiajs/vue3'
+
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '../ui/form'
+import { DialogCloseProps } from 'radix-vue'
+
+const formSchema = toTypedSchema(z.object({
+    name: z.string({
+        required_error: 'Name is required.'
+    }),
+    email: z.string({
+        required_error: 'Email is required.'
+    }).email({
+        message: 'Email is invalid.'
+    }),
+    phone: z.number({
+        required_error: 'Phone is required.',
+        invalid_type_error: 'Invalid Phone.'
+    }).min(10),
+    address: z.string({
+        required_error: 'Address is required.'
+    }),
+}))
+
+const { handleSubmit } = useForm({
+    validationSchema: formSchema,
+})
+
+const form = useFormInertia({
+    name: null,
+    email: null,
+    phone: 0,
+    address: null,
+})
+
+const open = ref(false)
+
+const onSubmit = handleSubmit((values) => {
+    console.log(props)
+    form.post('/', {
+        onSuccess: (data) => {
+            open.value = false
+            toast.success(`Customer ${values.name} created successfully.`)
+        },
+        onError: (errors) => {
+            console.log(errors)
+            toast.error(`Failed to create customer. : ${errors.email || errors.phone || errors.name || errors.address}`)
+        },
+        onProgress: () => {
+            toast.loading('Creating customer...')
+        },
+    })
+})
+
 
 const props = defineProps<{
     columns: ColumnDef<TData, TValue>[]
     data: TData[]
 }>()
 
+const columnFilters = ref<ColumnFiltersState>([])
+
 const table = useVueTable({
     get data() { return props.data },
     get columns() { return props.columns },
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    onColumnFiltersChange: updaterOrValue => valueUpdater(updaterOrValue, columnFilters),
+    getFilteredRowModel: getFilteredRowModel(),
+    state: {
+        get columnFilters() { return columnFilters.value },
+    }
 })
 </script>
 
 <template>
     <div class="flex flex-col gap-2">
+        <div class="flex flex-row justify-between items-center">
+
+            <div class="flex items-center w-full py-4">
+                <Input class="max-w-sm w-full" placeholder="Search by name"
+                    :model-value="table.getColumn('name')?.getFilterValue() as string"
+                    @update:model-value=" table.getColumn('name')?.setFilterValue($event)" />
+            </div>
+            <Dialog v-model:open="open">
+                <DialogTrigger>
+                    <Button variant="secondary" class="border-2">
+                        <Plus />
+                    </Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <form @submit.prevent="onSubmit">
+                        <DialogHeader>
+                            <DialogTitle>Create Customer</DialogTitle>
+                            <DialogDescription>
+                                Make new customer to your database here. Click save when you're done.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <FormField v-slot="{ componentField }" name="name">
+                            <FormItem class="my-4" v-auto-animate>
+                                <FormLabel>Name</FormLabel>
+                                <FormControl>
+                                    <Input type="text" placeholder="Name" v-model="form.name" v-bind="componentField" />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        </FormField>
+                        <FormField v-slot="{ componentField }" name="email">
+                            <FormItem class="my-4" v-auto-animate>
+                                <FormLabel>Email</FormLabel>
+                                <FormControl>
+                                    <Input type="text" placeholder="Email" v-model="form.email"
+                                        v-bind="componentField" />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        </FormField>
+                        <FormField v-slot="{ componentField }" name="phone">
+                            <FormItem class="my-4" v-auto-animate>
+                                <FormLabel>Phone</FormLabel>
+                                <FormControl>
+                                    <Input type="number" class="remove-arrow" placeholder="Phone" v-model="form.phone"
+                                        v-bind="componentField" />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        </FormField>
+                        <FormField v-slot="{ componentField }" name="address">
+                            <FormItem class="my-4" v-auto-animate>
+                                <FormLabel>Address</FormLabel>
+                                <FormControl>
+                                    <Input type="text" placeholder="Address" v-model="form.address"
+                                        v-bind="componentField" />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        </FormField>
+
+                        <DialogFooter>
+                            <Button class="mt-4" :disabled="form.processing" type="submit">
+                                Save
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+        </div>
+
         <div class="border rounded-md">
             <Table>
                 <TableHeader>

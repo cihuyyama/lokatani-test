@@ -5,18 +5,24 @@ import Button from '../ui/button/Button.vue';
 defineProps<{
     customer: Customer
 }>()
+
+import {
+    BookOpen,
+    Pen,
+    Trash2
+} from 'lucide-vue-next'
 </script>
 
 <template>
     <div class="flex flex-row gap-1">
-        <Button variant="outline" click="">
-            Details
+        <Button class="text-white bg-slate-400" variant="outline" click="">
+            <BookOpen />
         </Button>
-        <Button variant="outline" click="">
-            Edit
+        <Button class="text-white bg-green-400" variant="outline" click="">
+            <Pen />
         </Button>
-        <Button variant="outline" click="">
-            Delete
+        <Button class="text-white bg-red-400" variant="outline" click="">
+            <Trash2 />
         </Button>
     </div>
 </template>
