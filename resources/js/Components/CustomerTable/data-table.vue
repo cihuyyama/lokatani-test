@@ -191,7 +191,7 @@ const table = useVueTable({
                             <FormItem class="my-4" v-auto-animate>
                                 <FormLabel>Phone</FormLabel>
                                 <FormControl>
-                                    <Input type="number" class="remove-arrow" placeholder="Phone" v-model="form.phone"
+                                    <Input type="text" class="remove-arrow" placeholder="Phone" v-model="form.phone"
                                         v-bind="componentField" />
                                 </FormControl>
                                 <FormMessage />

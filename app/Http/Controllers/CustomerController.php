@@ -23,7 +23,7 @@ class CustomerController extends Controller
                 'phone' => $customer->phone,
                 'address' => $customer->address,
                 'created_at' => Carbon::createFromFormat('Y-m-d H:i:s', $customer->created_at, 'Asia/Jakarta')->format('d F Y H:i:s'),
-                'updated_at' => Carbon::createFromFormat('Y-m-d H:i:s', $customer->created_at, 'Asia/Jakarta')->format('d F Y H:i:s'),
+                'updated_at' => Carbon::createFromFormat('Y-m-d H:i:s', $customer->updated_at, 'Asia/Jakarta')->format('d F Y H:i:s'),
             ];
         });
         return Inertia::render('Home', [
