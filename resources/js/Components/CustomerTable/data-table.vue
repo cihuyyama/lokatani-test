@@ -80,7 +80,7 @@ const formSchema = toTypedSchema(z.object({
     }).email({
         message: 'Email is invalid.'
     }),
-    phone: z.number({
+    phone: z.string({
         required_error: 'Phone is required.',
         invalid_type_error: 'Invalid Phone.'
     }),

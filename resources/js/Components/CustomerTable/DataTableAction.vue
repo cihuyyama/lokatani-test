@@ -49,10 +49,10 @@ const formSchema = toTypedSchema(z.object({
     }).email({
         message: 'Email is invalid.'
     }).default(props.customer.email),
-    phone: z.number({
+    phone: z.string({
         required_error: 'Phone is required.',
         invalid_type_error: 'Invalid Phone.'
-    }).default(Number(props.customer.phone)),
+    }).default(String(props.customer.phone)),
     address: z.string({
         required_error: 'Address is required.'
     }).default(props.customer.address),
@@ -63,16 +63,18 @@ const { handleSubmit } = useForm({
     validationSchema: formSchema,
 })
 
+const openDelete = ref(false)
+
 const onDeleteSubmit = handleSubmit((values) => {
-    router.delete('/', {
-        data: {
-            id: values.id
-        },
+    console.log(values)
+    form.delete(`/${values.id}`, {
         onSuccess: () => {
+            openDelete.value = false
             toast.success('Customer deleted successfully.')
+            window.location.reload()
         },
-        onError: () => {
-            toast.error('Failed to delete customer.')
+        onError: (error) => {
+            toast.error(`Failed to delete customer : ${error.message}`)
         }
     })
 })
@@ -134,11 +136,11 @@ const form = useFormInertia({
                     </div>
                     <div class="flex flex-col gap-1">
                         <div class="font-bold">Created At</div>
-                        <div>{{ customer.created_at }}</div>
+                        <div>{{ customer.created_at.substring(3) }}</div>
                     </div>
                     <div class="flex flex-col gap-1">
                         <div class="font-bold">Updated At</div>
-                        <div>{{ customer.updated_at }}</div>
+                        <div>{{ customer.updated_at.substring(3) }}</div>
                     </div>
                 </div>
                 <DialogFooter>
@@ -189,7 +191,7 @@ const form = useFormInertia({
                         <FormItem class="my-2" v-auto-animate>
                             <FormLabel>Phone</FormLabel>
                             <FormControl>
-                                <Input type="number" class="remove-arrow" placeholder="Phone"
+                                <Input type="text" class="remove-arrow" placeholder="Phone"
                                     :default-value="props.customer.phone" v-model="form.phone"
                                     v-bind="componentField" />
                             </FormControl>
@@ -219,7 +221,7 @@ const form = useFormInertia({
             </DialogContent>
         </Dialog>
 
-        <Dialog>
+        <Dialog v-model:open="openDelete">
             <DialogTrigger>
                 <Button class="text-white bg-red-400" variant="outline" click="">
                     <Trash2 />
@@ -239,7 +241,11 @@ const form = useFormInertia({
                             Cancel
                         </Button>
                     </DialogClose>
-                    <Button @click="onDeleteSubmit" class="text-white bg-red-400" variant="outline">
+                    <Button v-if="form.processing" disabled>
+                        <Loader2 class="w-4 h-4 mr-2 animate-spin" />
+                        Deleting...
+                    </Button>
+                    <Button v-else @click="onDeleteSubmit" class="text-white bg-red-400" variant="outline">
                         Delete
                     </Button>
                 </DialogFooter>
